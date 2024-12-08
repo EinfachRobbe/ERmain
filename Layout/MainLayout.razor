@@ -1,0 +1,55 @@
+﻿@inherits LayoutComponentBase
+@using Blazored.LocalStorage
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+@code {
+    private bool toggleDark = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!(await LocalStorage.ContainKeyAsync("theme")))
+        {
+            await LocalStorage.SetItemAsStringAsync("theme", "light");
+        }
+        else
+        {
+            string theme = await LocalStorage.GetItemAsStringAsync("theme");
+
+            if (theme == "dark")
+            {
+                toggleDark = true;
+            }
+            else
+            {
+                toggleDark = false;
+            }
+        }
+    }
+    
+    private async Task ChangeTheme()
+    {
+        toggleDark = !toggleDark;
+        string theme = await LocalStorage.GetItemAsStringAsync("theme");
+
+        if (theme == "dark")
+        {
+            await LocalStorage.SetItemAsStringAsync("theme", "light");
+        }
+        else
+        {
+            await LocalStorage.SetItemAsStringAsync("theme", "dark");
+        }
+    }
+}
+
+<header>
+    <NavBar />
+</header>
+
+<main class='@(toggleDark ? "dark" : null)'>
+    @Body
+</main>
+
+
+
+
