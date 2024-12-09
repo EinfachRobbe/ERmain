@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using ERmain;
 using ERmain.Data.Language;
+using ERmain.Data.Story;
 using ERmain.Data.Theme;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -15,6 +16,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https:/
 builder.Services.AddScoped<LanguageAPI>();
 builder.Services.AddScoped<LanguageService>();
 builder.Services.AddScoped<ThemeService>();
+builder.Services.AddScoped<StoryAPI>();
 builder.Services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Debug));
 
 await builder.Build().RunAsync();

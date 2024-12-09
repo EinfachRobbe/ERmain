@@ -43,4 +43,5 @@ public class LanguageAPI
         LanguageRoot languageRoot = await GetLanguageRoot();
         return languageRoot.Data.FirstOrDefault(languageAsset => languageAsset.Key == key);
     }
+    
 }
