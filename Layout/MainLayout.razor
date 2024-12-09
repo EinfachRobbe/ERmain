@@ -1,52 +1,69 @@
 ﻿@inherits LayoutComponentBase
-@using Blazored.LocalStorage
-@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@using ERmain.Data.Language
+@using ERmain.Data.Theme
+@inject ThemeService ThemeService
+@inject LanguageService LanguageService
+@implements IDisposable
 
 @code {
-    private bool toggleDark = true;
+    private bool _toggleDark;
+    private bool _isEnglish;
 
     protected override async Task OnInitializedAsync()
     {
-        if (!(await LocalStorage.ContainKeyAsync("theme")))
-        {
-            await LocalStorage.SetItemAsStringAsync("theme", "light");
+        ThemeService.OnThemeChanged += ReloadTheme;
+        LanguageService.OnLanguageChanged += ReloadLanguage;
+        
+        {//Theme
+            string theme = await ThemeService.GetThemeOrDefault();
+            _toggleDark = theme == "dark";
         }
-        else
-        {
-            string theme = await LocalStorage.GetItemAsStringAsync("theme");
+        
+        {//Language
+            string lang = await LanguageService.GetLanguageOrDefault();
+            _isEnglish = lang == "en";
+        }
+    }
 
-            if (theme == "dark")
-            {
-                toggleDark = true;
-            }
-            else
-            {
-                toggleDark = false;
-            }
-        }
+    private void ReloadTheme()
+    {
+        _ = UpdateTheme();
+        StateHasChanged();
     }
     
-    private async Task ChangeTheme()
+    private async Task UpdateTheme()
     {
-        toggleDark = !toggleDark;
-        string theme = await LocalStorage.GetItemAsStringAsync("theme");
-
-        if (theme == "dark")
-        {
-            await LocalStorage.SetItemAsStringAsync("theme", "light");
-        }
-        else
-        {
-            await LocalStorage.SetItemAsStringAsync("theme", "dark");
-        }
+        string theme = await ThemeService.GetThemeOrDefault();
+        _toggleDark = theme == "dark";
+        await InvokeAsync(StateHasChanged);
     }
+    
+    private void ReloadLanguage()
+    {
+        _ = UpdateLanguage();
+        StateHasChanged();
+    }
+    
+    private async Task UpdateLanguage()
+    {
+        string lang = await LanguageService.GetLanguageOrDefault();
+        _isEnglish = lang == "en";
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= ReloadTheme;
+        LanguageService.OnLanguageChanged -= ReloadLanguage;
+    }
+
 }
 
 <header>
     <NavBar />
 </header>
 
-<main class='@(toggleDark ? "dark" : null)'>
+<main class='@(_toggleDark ? "dark" : null)' lang="@(_isEnglish ? "en" : "de")">
     @Body
 </main>
 

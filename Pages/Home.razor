@@ -1,530 +1,602 @@
 ﻿@page "/"
+@using ERmain.Data.Language
+@using ERmain.Data.Theme
+@inject LanguageAPI LanguageAPI
+@inject ILogger<Home> Logger
+@inject LanguageService LanguageService
+@inject ThemeService ThemeService
+@implements IDisposable
 
 <PageTitle>Home</PageTitle>
 
-<!-- background -->
-<div class="bg-gray-50 dark:bg-gray-800 w-screen h-screen p-2">
+@code {
+    private List<LanguageAsset> _languageAssets = null!;
+    private bool _isEnglish;
 
-    <!-- EinfachRobbe Box -->
-    <section id="home">
-        <div
-            class="w-[60%] bg-gray-100 border border-gray-200 shadow rounded-3xl p-2 animate__animated animate__fadeInDown animate__fast">
+    protected override async Task OnInitializedAsync()
+    {
+        LanguageService.OnLanguageChanged += ReloadTranslations;
+        
+        _languageAssets = await LanguageAPI.GetLanguageAssets();
+        _isEnglish = await LanguageService.GetLanguageOrDefault() == "en";
+        Logger.LogInformation("Home page initialized");
+        Logger.LogInformation(_languageAssets.Count + " language assets loaded");
+        Logger.LogInformation("English: " + _isEnglish);
+    }
 
-            <div class="flex">
+    private string GetTranslation(string key)
+    {
+        if (_languageAssets == null)
+        {
+            throw new InvalidOperationException("Language assets not loaded");
+        }
 
-                <img src="@Assets["svg/EinfachRobbe-logo.svg"]" class="h-24" alt="EinfachRobbe Logo"/>
+        LanguageAsset asset = _languageAssets.FirstOrDefault(x => x.Key == key);
 
-                <div class="inline ml-2">
+        if (asset == null)
+        {
+            throw new InvalidOperationException("Translation with key " + key + " not found");
+        }
 
-                    <p class="text-5xl mt-4 finger-paint-regular">EinfachRobbe</p>
+        Logger.LogInformation(asset.Key + " found!");
+        return _isEnglish ? asset.EnEN : asset.DeDE;
+    }
+    
+    private void ReloadTranslations()
+    {
+        _ = UpdateLanguageStateAndRefresh();
+        StateHasChanged();
+    }
+    
+    private async Task UpdateLanguageStateAndRefresh()
+    {
+        await UpdateLanguageState();
+        await InvokeAsync(StateHasChanged);
+    }
 
-                    <!-- Socials -->
-                    <div class="flex gap-2 mt-2">
-                        <a class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
-                           href="https://discord.com/users/860611726252703774"
-                           target="_blank"
-                           rel="noopener noreferrer">
-                            <i class="bi bi-discord"></i>
-                            <p class="ml-1">Discord</p>
-                        </a>
-                        <a class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
-                           href="https://github.com/EinfachRobbe"
-                           target="_blank"
-                           rel="noopener noreferrer">
-                            <i class="bi bi-github"></i>
-                            <p class="ml-1">Github</p>
-                        </a>
-                        <a class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
-                           href="https://instagram.com/einfachrobbe"
-                           target="_blank"
-                           rel="noopener noreferrer">
-                            <i class="bi bi-instagram"></i>
-                            <p class="ml-1">Instagram</p>
-                        </a>
-                        <a
-                            class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
-                            href="https://youtube.com/@@EinfachRobbe"
-                            target="_blank"
-                            rel="noopener noreferrer">
-                            <i class="bi bi-youtube"></i>
-                            <p class="ml-1">YouTube</p>
-                        </a>
-                        <a
-                            class="flex text-blue-900 w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
-                            href="/socials"
-                            target="_blank"
-                            rel="noopener noreferrer">
-                            <p class="">See all</p>
-                            <i class="bi bi-arrow-right ml-1"></i>
-                        </a>
+    private async Task UpdateLanguageState()
+    {
+        string currentLang = await LanguageService.GetLanguageOrDefault();
+        _isEnglish = currentLang == "en";
+    }
+
+    public void Dispose()
+    {
+        LanguageService.OnLanguageChanged -= ReloadTranslations;
+    }
+
+}
+
+@if (_languageAssets != null)
+{
+    <!-- background -->
+    <div class="bg-gray-50 dark:bg-gray-800 w-screen h-screen p-2">
+
+        <!-- EinfachRobbe Box -->
+        <section id="home">
+            <div
+                class="w-[60%] bg-gray-100 border border-gray-200 shadow rounded-3xl p-2 animate__animated animate__fadeInDown animate__fast">
+
+                <div class="flex">
+
+                    <img src="@Assets["svg/EinfachRobbe-logo.svg"]" class="h-24" alt="EinfachRobbe Logo"/>
+
+                    <div class="inline ml-2">
+
+                        <p class="text-5xl mt-4 finger-paint-regular">EinfachRobbe</p>
+
+                        <!-- Socials -->
+                        <div class="flex gap-2 mt-2">
+                            <a class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
+                               href="https://discord.com/users/860611726252703774"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                <i class="bi bi-discord"></i>
+                                <p class="ml-1">Discord</p>
+                            </a>
+                            <a class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
+                               href="https://github.com/EinfachRobbe"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                <i class="bi bi-github"></i>
+                                <p class="ml-1">Github</p>
+                            </a>
+                            <a class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
+                               href="https://instagram.com/einfachrobbe"
+                               target="_blank"
+                               rel="noopener noreferrer">
+                                <i class="bi bi-instagram"></i>
+                                <p class="ml-1">Instagram</p>
+                            </a>
+                            <a
+                                class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
+                                href="https://youtube.com/@@EinfachRobbe"
+                                target="_blank"
+                                rel="noopener noreferrer">
+                                <i class="bi bi-youtube"></i>
+                                <p class="ml-1">YouTube</p>
+                            </a>
+                            <a
+                                class="flex text-blue-900 w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
+                                href="/socials"
+                                target="_blank"
+                                rel="noopener noreferrer">
+                                <p class="">See all</p>
+                                <i class="bi bi-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+
                     </div>
 
                 </div>
 
+                <!-- Description -->
+                <div class="mt-2 ml-2">
+                    <p class="font-light">@GetTranslation("ERmain.home.description")</p>
+                </div>
+
             </div>
+        </section>
 
-            <!-- Description -->
-            <div class="mt-2 ml-2">
-                <p class="font-light">Hi, I'm Hugo, also known as "EinfachRobbe" or just "Robbe." I'm a passionate
-                    developer
-                    and tech enthusiast specializing in backend and full-stack development. My main programming
-                    languages
-                    are Java and C#, with a strong focus on creating efficient and scalable solutions.
+        <!-- Timeline -->
+        <section id="story">
+            <p class="underlined font-bold mt-2 ml-2 text-3xl animate__animated animate__fadeInTopLeft animate__fast animate__delay-1s">
+                My story</p>
 
-                    I also enjoy crafting beautiful and interactive frontends using tools like Tailwind, Animate.css,
-                    and
-                    Hover.css. As the Senior Developer for the Minecraft project BTE-Germany, I bring my expertise to
-                    building custom Spigot plugins and other innovative tools.
+            <div class="flex mt-3 ml-2 w-[60%]">
+                <ol class="relative pl-2">
+                    <div class="absolute inset-y-0 left-0 w-1 bg-gray-200 dark:bg-gray-700"></div>
 
-                    I’m always looking to improve my skills and tackle new challenges, whether it’s developing complex
-                    backend systems or designing user-friendly interfaces. If you’re in need of custom development for
-                    Minecraft, Discord, or full-stack applications, feel free to reach out!</p>
+                    <!-- 2021 -->
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 1.2s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1">
+                                <p class="text-bold">2021</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">First small Minecraft
+                                server</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                July
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                First small prepaid server at Nitrado with small vanilla minigames. Developed desire to
+                                offer a
+                                Minecraft server as a passion for a large community.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 mt-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 1.4s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2021</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">First touch with
+                                discord</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                July
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                First dive into the Discord world. First small Minecraft projects and jobs on small
+                                Discords
+                                as
+                                designer & supporter.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 mt-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 1.6s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2021</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">First touch with
+                                discord-bots</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                September
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                First contact with Discord bots. Immediate development of great interest in programming
+                                them.
+                                First small bot attempts with different programming languages.
+                                Later first jobs on small Discords as a developer.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 mt-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 1.8s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2021</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Minecraft & Linux</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                December
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                Switch to a small shared license of a Linux V server and move the Minecraft vision to
+                                it.
+                                Immediate enthusiasm for Linux machines and their administration.
+                            </p>
+                        </div>
+                    </li>
+
+                    <!-- 2022 -->
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast animate__delay-2s">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1">
+                                <p class="text-bold">2022</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">First Minecraft project</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                January
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                It was named the MinecraftOlympics and was a mix of certain vanilla minigames built by
+                                me
+                                and my
+                                friends.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 2.2s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2022</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">First Minecraft network</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                March
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                First creation of a small Minecraft network with mainly my friend Suppenkasper. The
+                                network
+                                was
+                                called "SealCraftMC" and was a small network with a few minigames.
+                                This also was the time when I got my first experience with Spigot plugins. On this
+                                network
+                                the
+                                first half-professional project was held, "MineAttack" Survival.
+                                Now it was hosted on a small Linux V server which I payed and administrated myself.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 2.4s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2022</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Survival mode</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                May
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                Restructuring from a minigame server to a pure hardcore survival server.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 2.6s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2022</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">First success</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                July
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                Through the contact to Auau (at that time developer at Biloumaster) I gained a lot of
+                                experience
+                                in the topic of own plugin development and we were able
+                                to launch the server with a TikTok diary. That was the first success of my story with
+                                the
+                                first
+                                players we didn't know.
+                                It was still mainly built by me and Timo (Suppenkasper). Later this server was exploited
+                                and
+                                we
+                                had to close it.
+                                But it was a great experience and I avoided this bug in the future.
+                                This time I also experimented with simple html websites for the first time.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 2.8s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2022</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">BattleSeal</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                September
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                First idea of BattleSeal, a game like Fortnite where you had to loot, shoot and build.
+                                Attempts
+                                at implementation alone.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast animate__delay-3s">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2022</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">MineAttack II</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                Dezember
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                CraftingSeal (former MineAttack) started into the second series. This time with first
+                                own
+                                coded
+                                plugins.
+                            </p>
+                        </div>
+                    </li>
+
+                    <!-- 2023 -->
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 3.2s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1">
+                                <p class="text-bold">2023</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">SealTopia</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                March
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                A big Minecraft minigame server project started. The hype is there and with the help of
+                                various
+                                people we were able to create our first unique minigames.
+                                This server was a kind of revulotion and lasted a long time...
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 3.4s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2023</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">SealTopia II</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                September
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                The hype and the desire for SealTopia flattened out for the first time and I reacted
+                                immediately, set myself new goals and motivated my environment and the community.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 3.6s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2023</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Hardware!!!</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                October
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                It was my first time working with microcontrollers such as Arduinos. I immediately
+                                developed
+                                a
+                                kind of passion for them and my head was bursting with ideas.
+                                One of my first projects, for example, was the combination of Lego Power Functions with
+                                Arduinos. I built my own adapters and achieved my goals.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 3.8s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2023</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Cancels over cancels</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                December
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                Exit the Minecraft Bubble for the time being by archiving SealTopia.
+                            </p>
+                        </div>
+                    </li>
+
+                    <!-- 2024 -->
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast animate__delay-4s">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1">
+                                <p class="text-bold">2024</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Different world</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                January
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                The new year started directly with a new project, but this time completely independent
+                                of
+                                Minecraft.
+                                It was called “GermanLimits” and was an AssettoCorsa server network specializing in
+                                custom
+                                tuned
+                                top German brands.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 4.2s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2024</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">BuildTheEarth!</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                February
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                First job in a project of the larger kind as a developer in the field of minecraft
+                                plugins.
+                                The
+                                project is called BTE-Germany and is about rebuilding the whole of Germany in Minecraft.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 4.4s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2024</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Digressions</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                June
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                Several small digressions on the subject of discord bots with “Clarabot” or “FluxAI”.
+                                All
+                                programmed with Java JDA.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 4.6s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2024</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Back to the old</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                July
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                Re-entering the Minecraft server bubble with high hopes of making it big this time.
+                                “VoltValley”
+                                was the name of the server this time.
+                                There were to be completely new game modes all lovingly self-programmed and kept modern
+                                with
+                                resource packs.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
+                        style="animation-delay: 4.8s;">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2024</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Enough!</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                September
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                Canceling VoltValley due to lack of motivation and seeing the Minecraft Bubble broken.
+                            </p>
+                        </div>
+                    </li>
+                    <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast animate__delay-5s">
+                        <div>
+                            <span
+                                class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                <p class="text-bold">2024</p>
+                            </span>
+                        </div>
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">A new era</h3>
+                            <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                October
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                Entry into the C# .NET bubble with small console projects. Later, I picked up my passion
+                                for
+                                web
+                                development again.
+                                C# was not too difficult for me because the syntax is fundamentally similar to Java.
+                                First
+                                projects with ASP.NET solutions and Blazor.
+                            </p>
+                        </div>
+                    </li>
+
+
+                </ol>
             </div>
+        </section>
 
-        </div>
-    </section>
+        <section id="projects">
+        </section>
 
-    <!-- Timeline -->
-    <section id="story">
-        <p class="underlined font-bold mt-2 ml-2 text-3xl animate__animated animate__fadeInTopLeft animate__fast animate__delay-1s">
-            My story</p>
+        <section id="hire">
+        </section>
 
-        <div class="flex mt-3 ml-2 w-[60%]">
-            <ol class="relative pl-2">
-                <div class="absolute inset-y-0 left-0 w-1 bg-gray-200 dark:bg-gray-700"></div>
-
-                <!-- 2021 -->
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 1.2s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1">
-                        <p class="text-bold">2021</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">First small Minecraft
-                            server</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            July
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            First small prepaid server at Nitrado with small vanilla minigames. Developed desire to
-                            offer a
-                            Minecraft server as a passion for a large community.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 mt-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 1.4s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2021</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">First touch with discord</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            July
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            First dive into the Discord world. First small Minecraft projects and jobs on small Discords
-                            as
-                            designer & supporter.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 mt-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 1.6s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2021</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">First touch with
-                            discord-bots</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            September
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            First contact with Discord bots. Immediate development of great interest in programming
-                            them.
-                            First small bot attempts with different programming languages.
-                            Later first jobs on small Discords as a developer.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 mt-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 1.8s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2021</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Minecraft & Linux</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            December
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            Switch to a small shared license of a Linux V server and move the Minecraft vision to it.
-                            Immediate enthusiasm for Linux machines and their administration.
-                        </p>
-                    </div>
-                </li>
-
-                <!-- 2022 -->
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast animate__delay-2s">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1">
-                        <p class="text-bold">2022</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">First Minecraft project</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            January
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            It was named the MinecraftOlympics and was a mix of certain vanilla minigames built by me
-                            and my
-                            friends.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 2.2s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2022</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">First Minecraft network</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            March
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            First creation of a small Minecraft network with mainly my friend Suppenkasper. The network
-                            was
-                            called "SealCraftMC" and was a small network with a few minigames.
-                            This also was the time when I got my first experience with Spigot plugins. On this network
-                            the
-                            first half-professional project was held, "MineAttack" Survival.
-                            Now it was hosted on a small Linux V server which I payed and administrated myself.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 2.4s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2022</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Survival mode</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            May
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            Restructuring from a minigame server to a pure hardcore survival server.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 2.6s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2022</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">First success</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            July
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            Through the contact to Auau (at that time developer at Biloumaster) I gained a lot of
-                            experience
-                            in the topic of own plugin development and we were able
-                            to launch the server with a TikTok diary. That was the first success of my story with the
-                            first
-                            players we didn't know.
-                            It was still mainly built by me and Timo (Suppenkasper). Later this server was exploited and
-                            we
-                            had to close it.
-                            But it was a great experience and I avoided this bug in the future.
-                            This time I also experimented with simple html websites for the first time.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 2.8s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2022</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">BattleSeal</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            September
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            First idea of BattleSeal, a game like Fortnite where you had to loot, shoot and build.
-                            Attempts
-                            at implementation alone.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast animate__delay-3s">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2022</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">MineAttack II</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            Dezember
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            CraftingSeal (former MineAttack) started into the second series. This time with first own
-                            coded
-                            plugins.
-                        </p>
-                    </div>
-                </li>
-
-                <!-- 2023 -->
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 3.2s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1">
-                        <p class="text-bold">2023</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">SealTopia</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            March
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            A big Minecraft minigame server project started. The hype is there and with the help of
-                            various
-                            people we were able to create our first unique minigames.
-                            This server was a kind of revulotion and lasted a long time...
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 3.4s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2023</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">SealTopia II</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            September
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            The hype and the desire for SealTopia flattened out for the first time and I reacted
-                            immediately, set myself new goals and motivated my environment and the community.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 3.6s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2023</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Hardware!!!</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            October
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            It was my first time working with microcontrollers such as Arduinos. I immediately developed
-                            a
-                            kind of passion for them and my head was bursting with ideas.
-                            One of my first projects, for example, was the combination of Lego Power Functions with
-                            Arduinos. I built my own adapters and achieved my goals.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 3.8s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2023</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Cancels over cancels</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            December
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            Exit the Minecraft Bubble for the time being by archiving SealTopia.
-                        </p>
-                    </div>
-                </li>
-
-                <!-- 2024 -->
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast animate__delay-4s">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1">
-                        <p class="text-bold">2024</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Different world</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            January
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            The new year started directly with a new project, but this time completely independent of
-                            Minecraft.
-                            It was called “GermanLimits” and was an AssettoCorsa server network specializing in custom
-                            tuned
-                            top German brands.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 4.2s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2024</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">BuildTheEarth!</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            February
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            First job in a project of the larger kind as a developer in the field of minecraft plugins.
-                            The
-                            project is called BTE-Germany and is about rebuilding the whole of Germany in Minecraft.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 4.4s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2024</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Digressions</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            June
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            Several small digressions on the subject of discord bots with “Clarabot” or “FluxAI”. All
-                            programmed with Java JDA.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 4.6s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2024</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Back to the old</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            July
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            Re-entering the Minecraft server bubble with high hopes of making it big this time.
-                            “VoltValley”
-                            was the name of the server this time.
-                            There were to be completely new game modes all lovingly self-programmed and kept modern with
-                            resource packs.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast"
-                    style="animation-delay: 4.8s;">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2024</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Enough!</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            September
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            Canceling VoltValley due to lack of motivation and seeing the Minecraft Bubble broken.
-                        </p>
-                    </div>
-                </li>
-                <li class="flex space-x-2 animate__animated animate__fadeInTopLeft animate__fast animate__delay-5s">
-                    <div>
-                    <span
-                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                        <p class="text-bold">2024</p>
-                    </span>
-                    </div>
-                    <div class="inline">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">A new era</h3>
-                        <time class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                            October
-                        </time>
-                        <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                            Entry into the C# .NET bubble with small console projects. Later, I picked up my passion for
-                            web
-                            development again.
-                            C# was not too difficult for me because the syntax is fundamentally similar to Java. First
-                            projects with ASP.NET solutions and Blazor.
-                        </p>
-                    </div>
-                </li>
+        <section id="tools">
+        </section>
 
 
-            </ol>
-        </div>
-    </section>
-
-    <section id="projects">
-    </section>
-    
-    <section id="hire">
-    </section>
-    
-    <section id="tools">
-    </section>
-
-
-</div>
+    </div>
+}

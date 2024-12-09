@@ -1,9 +1,52 @@
-﻿<nav>
+﻿@using ERmain.Data.Language
+@using ERmain.Data.Theme
+@inject LanguageService LanguageService
+@inject ThemeService ThemeService
+@implements IDisposable
+
+@code {
+    
+    protected override void OnInitialized()
+    {
+        LanguageService.OnLanguageChanged += LanguageChanged;
+        ThemeService.OnThemeChanged += ThemeChanged;
+    }
+    
+    private async Task ToggleLanguage()
+    {
+        await LanguageService.ToggleLanguage();
+    }
+    
+    private async Task ToggleTheme()
+    {
+        await ThemeService.ToggleTheme();
+    }
+    
+    private void LanguageChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+    
+    private void ThemeChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+    
+    public void Dispose()
+    {
+        LanguageService.OnLanguageChanged -= LanguageChanged;
+        ThemeService.OnThemeChanged -= ThemeChanged;
+    }
+}
+
+<nav>
     <div class="fixed right-4 top-1/4 flex flex-col items-center space-y-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg">
         <a href="#home" class="hover:text-blue-400">Home</a>
         <a href="#story" class="hover:text-blue-400">Story</a>
         <a href="#projects" class="hover:text-blue-400">Projects</a>
         <a href="#hire" class="hover:text-blue-400">Hire me</a>
         <a href="#tools" class="hover:text-blue-400">Tools</a>
+        <button @onclick="ToggleLanguage" class="hover:bg-white">Toggle lang</button>
+        <button @onclick="ToggleTheme" class="hover:bg-white">Toggle theme</button>
     </div>
 </nav>
