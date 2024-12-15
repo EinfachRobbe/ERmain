@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using ERmain;
 using ERmain.Data.Language;
+using ERmain.Data.Projects;
 using ERmain.Data.Story;
 using ERmain.Data.Theme;
 
@@ -17,6 +18,7 @@ builder.Services.AddScoped<LanguageAPI>();
 builder.Services.AddScoped<LanguageService>();
 builder.Services.AddScoped<ThemeService>();
 builder.Services.AddScoped<StoryAPI>();
+builder.Services.AddScoped<ProjectsAPI>();
 builder.Services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Debug));
 
 await builder.Build().RunAsync();

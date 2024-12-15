@@ -21,6 +21,8 @@ public class StoryAsset
 
     [JsonPropertyName("MonthEN")]
     public string MonthEN { get; set; }
+    
+    public string? MonthDE { get; set; }
 
     [JsonPropertyName("Year")]
     public string Year { get; set; }

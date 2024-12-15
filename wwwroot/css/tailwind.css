@@ -1212,6 +1212,10 @@ input:checked + .toggle-bg {
   margin-top: 0.75rem;
 }
 
+.mt-3\.5 {
+  margin-top: 0.875rem;
+}
+
 .mt-4 {
   margin-top: 1rem;
 }
@@ -1358,6 +1362,10 @@ input:checked + .toggle-bg {
   width: 100vw;
 }
 
+.max-w-\[15\%\] {
+  max-width: 15%;
+}
+
 .flex-1 {
   flex: 1 1 0%;
 }
@@ -1482,6 +1490,11 @@ input:checked + .toggle-bg {
 
 .gap-2 {
   gap: 0.5rem;
+}
+
+.gap-x-2 {
+  -moz-column-gap: 0.5rem;
+       column-gap: 0.5rem;
 }
 
 .space-x-2 > :not([hidden]) ~ :not([hidden]) {
@@ -2262,6 +2275,11 @@ code {
 
 .dark\:bg-gray-900\/80:is(.dark *) {
   background-color: rgb(17 24 39 / 0.8);
+}
+
+.dark\:text-blue-300:is(.dark *) {
+  --tw-text-opacity: 1;
+  color: rgb(164 202 254 / var(--tw-text-opacity, 1));
 }
 
 .dark\:text-blue-500:is(.dark *) {

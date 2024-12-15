@@ -63,7 +63,7 @@
     <NavBar />
 </header>
 
-<main class='@(_toggleDark ? "dark" : null)' lang="@(_isEnglish ? "en" : "de")">
+<main class='@(_toggleDark ? "dark" : null) @(_toggleDark ? "bg-gray-800" : "bg-gray-50")' lang="@(_isEnglish ? "en" : "de")">
     @Body
 </main>
 

@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using ERmain.Data.Language
+@using ERmain.Data.Projects
 @using ERmain.Data.Story
 @using ERmain.Data.Theme
 @inject LanguageAPI LanguageAPI
@@ -7,6 +8,7 @@
 @inject LanguageService LanguageService
 @inject ThemeService ThemeService
 @inject StoryAPI StoryAPI
+@inject ProjectsAPI ProjectsAPI
 @implements IDisposable
 
 <PageTitle>Home</PageTitle>
@@ -15,6 +17,7 @@
     private List<LanguageAsset> _languageAssets = null!;
     private bool _isEnglish;
     private Dictionary<string, List<StoryAsset>> _storyAssets = new();
+    private List<Project> _projects = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -31,6 +34,8 @@
             List<StoryAsset> assets = await StoryAPI.GetStoryAssetsByYear(year);
             _storyAssets.Add(year, assets);
         }
+
+        _projects = await ProjectsAPI.GetProjects();
     }
 
     private string GetTranslation(string key)
@@ -86,143 +91,168 @@
 @if (_languageAssets != null)
 {
     <!-- background -->
-    <div class="bg-gray-50 dark:bg-gray-800 w-screen h-screen p-2">
+    <section id="home" class="p-2">
 
         <!-- EinfachRobbe Box -->
-        <section id="home">
-            <div
-                class="w-[60%] bg-gray-100 border border-gray-200 shadow rounded-3xl p-2 animate__animated animate__fadeInDown animate__fast">
+        <div
+            class="w-[60%] bg-gray-100 border border-gray-200 shadow rounded-3xl p-2 animate__animated animate__fadeInDown animate__fast">
 
-                <div class="flex">
+            <div class="flex">
 
-                    <img src="@Assets["svg/EinfachRobbe-logo.svg"]" class="h-24" alt="EinfachRobbe Logo"/>
+                <img src="@Assets["svg/EinfachRobbe-logo.svg"]" class="h-24" alt="EinfachRobbe Logo"/>
 
-                    <div class="inline ml-2">
+                <div class="inline ml-2">
 
-                        <p class="text-5xl mt-4 finger-paint-regular">EinfachRobbe</p>
+                    <p class="text-5xl mt-4 finger-paint-regular">EinfachRobbe</p>
 
-                        <!-- Socials -->
-                        <div class="flex gap-2 mt-2">
-                            <a class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
-                               href="https://discord.com/users/860611726252703774"
-                               target="_blank"
-                               rel="noopener noreferrer">
-                                <i class="bi bi-discord"></i>
-                                <p class="ml-1">Discord</p>
-                            </a>
-                            <a class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
-                               href="https://github.com/EinfachRobbe"
-                               target="_blank"
-                               rel="noopener noreferrer">
-                                <i class="bi bi-github"></i>
-                                <p class="ml-1">Github</p>
-                            </a>
-                            <a class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
-                               href="https://instagram.com/einfachrobbe"
-                               target="_blank"
-                               rel="noopener noreferrer">
-                                <i class="bi bi-instagram"></i>
-                                <p class="ml-1">Instagram</p>
-                            </a>
-                            <a
-                                class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
-                                href="https://youtube.com/@@EinfachRobbe"
-                                target="_blank"
-                                rel="noopener noreferrer">
-                                <i class="bi bi-youtube"></i>
-                                <p class="ml-1">YouTube</p>
-                            </a>
-                            <a
-                                class="flex text-blue-900 w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
-                                href="/socials"
-                                target="_blank"
-                                rel="noopener noreferrer">
-                                <p class="">See all</p>
-                                <i class="bi bi-arrow-right ml-1"></i>
-                            </a>
-                        </div>
-
+                    <!-- Socials -->
+                    <div class="flex gap-2 mt-2">
+                        <a class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
+                           href="https://discord.com/users/860611726252703774"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            <i class="bi bi-discord"></i>
+                            <p class="ml-1">Discord</p>
+                        </a>
+                        <a class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
+                           href="https://github.com/EinfachRobbe"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            <i class="bi bi-github"></i>
+                            <p class="ml-1">Github</p>
+                        </a>
+                        <a class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
+                           href="https://instagram.com/einfachrobbe"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            <i class="bi bi-instagram"></i>
+                            <p class="ml-1">Instagram</p>
+                        </a>
+                        <a
+                            class="flex bg-gray-100 border border-gray-300 shadow rounded-lg w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
+                            href="https://youtube.com/@@EinfachRobbe"
+                            target="_blank"
+                            rel="noopener noreferrer">
+                            <i class="bi bi-youtube"></i>
+                            <p class="ml-1">YouTube</p>
+                        </a>
+                        <a
+                            class="flex text-blue-900 w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
+                            href="/socials"
+                            target="_blank"
+                            rel="noopener noreferrer">
+                            <p class="">@GetTranslation("ERmain.home.seeall")</p>
+                            <i class="bi bi-arrow-right ml-1"></i>
+                        </a>
                     </div>
 
                 </div>
 
-                <!-- Description -->
-                <div class="mt-2 ml-2">
-                    <p class="font-light">@GetTranslation("ERmain.home.description")</p>
-                </div>
-
             </div>
-        </section>
 
-        <!-- Timeline -->
-        <section id="story">
-            <p class="underlined font-bold mt-2 ml-2 text-3xl animate__animated animate__fadeInTopLeft animate__fast animate__delay-1s">
-                My story</p>
+            <!-- Description -->
+            <div class="mt-2 ml-2">
+                <p class="font-light">@GetTranslation("ERmain.home.description")</p>
+            </div>
 
-            <div class="flex mt-3 ml-2 w-[60%] animate__animated animate__pulse animate__fast">
-                <ol class="relative pl-2">
-                    <div class="absolute inset-y-0 left-0 w-1 bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+    </section>
 
-                    @foreach (var yearedAssetList in _storyAssets)
-                    {
-                        <li class="flex space-x-2">
-                            <div>
+    <!-- Timeline -->
+    <section id="story">
+        <p class="underline font-bold mt-2 ml-2 text-3xl animate__animated animate__slideInLeft animate__fast">
+            @GetTranslation("ERmain.story")</p>
+
+        <div class="flex mt-3 ml-2 w-[60%] animate__animated animate__pulse animate__fast">
+            <ol class="relative pl-2">
+                <div class="absolute inset-y-0 left-0 w-1 bg-gray-200 dark:bg-gray-700"></div>
+
+                @foreach (var yearedAssetList in _storyAssets)
+                {
+                    <li class="flex space-x-2">
+                        <div>
                                 <span
                                     class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1">
                                     <p class="text-bold">@yearedAssetList.Key</p>
                                 </span>
-                            </div>
+                        </div>
 
+                        <div class="inline">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">@(_isEnglish ? yearedAssetList.Value[0].TitleEN : yearedAssetList.Value[0].TitleDE)</h3>
+                            <time
+                                class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                                @(_isEnglish ? yearedAssetList.Value[0].MonthEN : yearedAssetList.Value[0].MonthDE)
+                            </time>
+                            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                                @(_isEnglish ? yearedAssetList.Value[0].DescriptionEN : yearedAssetList.Value[0].DescriptionDE)
+                            </p>
+                        </div>
+
+                    </li>
+
+                    yearedAssetList.Value.Remove(yearedAssetList.Value[0]);
+
+                    foreach (var asset in yearedAssetList.Value)
+                    {
+                        <li class="flex space-x-2 mt-2">
+                            <div>
+                                    <span
+                                        class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
+                                        <p class="text-bold">@yearedAssetList.Key</p>
+                                    </span>
+                            </div>
                             <div class="inline">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">@(_isEnglish ? yearedAssetList.Value[0].TitleEN : yearedAssetList.Value[0].TitleDE)</h3>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">@(_isEnglish ? asset.TitleEN : asset.TitleDE)</h3>
                                 <time
                                     class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                                    @yearedAssetList.Value[0].MonthEN
+                                    @(_isEnglish ? asset.MonthEN : asset.MonthDE)
                                 </time>
                                 <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                                    @(_isEnglish ? yearedAssetList.Value[0].DescriptionEN : yearedAssetList.Value[0].DescriptionDE)
+                                    @(_isEnglish ? asset.DescriptionEN : asset.DescriptionDE)
                                 </p>
                             </div>
-
                         </li>
-
-                        yearedAssetList.Value.Remove(yearedAssetList.Value[0]);
-
-                        foreach (var asset in yearedAssetList.Value)
-                        {
-                            <li class="flex space-x-2 mt-2">
-                                <div>
-                                        <span
-                                            class="flex items-center justify-center w-auto bg-blue-100 dark:bg-blue-900 rounded-lg pl-1 pr-1 invisible">
-                                            <p class="text-bold">@yearedAssetList.Key</p>
-                                        </span>
-                                </div>
-                                <div class="inline">
-                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">@(_isEnglish ? asset.TitleEN : asset.TitleDE)</h3>
-                                    <time
-                                        class="block mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                                        @asset.MonthEN
-                                    </time>
-                                    <p class="text-base font-normal text-gray-500 dark:text-gray-400">
-                                        @(_isEnglish ? asset.DescriptionEN : asset.DescriptionDE)
-                                    </p>
-                                </div>
-                            </li>
-                        }
                     }
-                </ol>
-            </div>
-        </section>
+                }
+            </ol>
+        </div>
+    </section>
 
-        <section id="projects">
-        </section>
+    <section id="projects" class="p-2">
+        <div class="flex">
+            <p class="underline font-bold mt-2 ml-2 text-3xl animate__animated animate__slideInLeft animate__fast">
+                @GetTranslation("ERmain.projects")</p>
+            <p class="ml-1 mt-4 text-sm font-light text-gray-500">(@GetTranslation("ERmain.projects.featured"))</p>
+        </div>
 
-        <section id="hire">
-        </section>
+        <div class="flex gap-x-2 mt-2">
+            @foreach (var project in _projects)
+            {
+                <div class="max-w-[15%] w-auto bg-gray-100 border border-gray-200 shadow rounded-3xl p-2">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">@(_isEnglish ? project.TitleEN : project.TitleDE)</h3>
+                    <p class="text-base font-normal text-gray-500 dark:text-gray-400">@(_isEnglish ? project.DescriptionEN : project.DescriptionDE)</p>
+                    <a href="https://projects.einfachrobbe.de/details/@project.ERProjectsID"
+                       class="text-blue-900 dark:text-blue-300"
+                       target="_blank" rel="noopener noreferrer">@GetTranslation("ERmain.projects.seemore")</a>
+                </div>
+            }
+            <a
+                class="flex text-blue-900 w-auto pl-1 pr-1 hvr-grow whitespace-nowrap items-center cursor-pointer"
+                href="https://projects.einfachrobbe.de"
+                target="_blank"
+                rel="noopener noreferrer">
+                <p class="text-xl">@GetTranslation("ERmain.home.seeall")</p>
+                <i class="bi bi-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </section>
 
-        <section id="tools">
-        </section>
+    <section id="hire">
+        
+        
+        
+    </section>
 
-
-    </div>
+    <section id="tools">
+    </section>
 }
