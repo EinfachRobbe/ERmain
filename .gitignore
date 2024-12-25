@@ -7,3 +7,4 @@ riderModule.iml
 node_modules
 Properties
 .gitignore
+appsettings.json

@@ -15,6 +15,8 @@ public class ProjectsAPI
         _httpClient = httpClient;
         _memoryCache = memoryCache;
         _languageService = languageService;
+        
+        _httpClient.BaseAddress = new Uri("https://cms.einfachrobbe.de/");
     }
     
     public async Task<ProjectRoot> GetProjectRoot()

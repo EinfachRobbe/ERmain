@@ -3,6 +3,7 @@
 @using ERmain.Data.Projects
 @using ERmain.Data.Story
 @using ERmain.Data.Theme
+@using Microsoft.JSInterop
 @inject LanguageAPI LanguageAPI
 @inject ILogger<Home> Logger
 @inject LanguageService LanguageService
@@ -14,6 +15,9 @@
 <PageTitle>Home</PageTitle>
 
 @code {
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; }
+    
     private List<LanguageAsset> _languageAssets = null!;
     private bool _isEnglish;
     private Dictionary<string, List<StoryAsset>> _storyAssets = new();
@@ -36,6 +40,24 @@
         }
 
         _projects = await ProjectsAPI.GetProjects();
+        
+        await JSRuntime.InvokeVoidAsync("eval", @"if (typeof MauticSDKLoaded == 'undefined') {
+            var MauticSDKLoaded = true;
+            var head = document.getElementsByTagName('head')[0];
+            var script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = 'https://mautic.einfachrobbe.de/media/js/mautic-form.js';
+            script.onload = function() {
+                MauticSDK.onLoad();
+            };
+            head.appendChild(script);
+            var MauticDomain = 'https://mautic.einfachrobbe.de';
+                var MauticLang = {
+                    'submittingMessage': ""Please wait...""
+                }
+            } else if (typeof MauticSDK != 'undefined') {
+                MauticSDK.onLoad();
+        }");
     }
 
     private string GetTranslation(string key)
@@ -85,8 +107,9 @@
     {
         LanguageService.OnLanguageChanged -= ReloadTranslations;
     }
-
 }
+
+
 
 @if (_languageAssets != null)
 {
@@ -220,7 +243,7 @@
 
     <section id="projects" class="p-2">
         <div class="flex">
-            <p class="underline font-bold mt-2 ml-2 text-3xl animate__animated animate__slideInLeft animate__fast">
+            <p class="underline font-bold mt-2 text-3xl animate__animated animate__slideInLeft animate__fast">
                 @GetTranslation("ERmain.projects")</p>
             <p class="ml-1 mt-4 text-sm font-light text-gray-500">(@GetTranslation("ERmain.projects.featured"))</p>
         </div>
@@ -228,12 +251,15 @@
         <div class="flex gap-x-2 mt-2">
             @foreach (var project in _projects)
             {
-                <div class="max-w-[15%] w-auto bg-gray-100 border border-gray-200 shadow rounded-3xl p-2">
+                <div
+                    class="max-w-[15%] w-auto bg-gray-100 border border-gray-200 shadow rounded-3xl p-2 animate__animated animate__zoomIn animate__fast">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">@(_isEnglish ? project.TitleEN : project.TitleDE)</h3>
                     <p class="text-base font-normal text-gray-500 dark:text-gray-400">@(_isEnglish ? project.DescriptionEN : project.DescriptionDE)</p>
                     <a href="https://projects.einfachrobbe.de/details/@project.ERProjectsID"
                        class="text-blue-900 dark:text-blue-300"
-                       target="_blank" rel="noopener noreferrer">@GetTranslation("ERmain.projects.seemore")</a>
+                       target="_blank" rel="noopener noreferrer">
+                        <p class="hover:underline">@GetTranslation("ERmain.projects.seemore")</p>
+                    </a>
                 </div>
             }
             <a
@@ -247,10 +273,69 @@
         </div>
     </section>
 
-    <section id="hire">
-        
-        
-        
+    <section id="hire" class="p-2">
+        <div class="flex">
+            <p class="underline font-bold mt-2 text-3xl animate__animated animate__slideInLeft animate__fast">
+                @GetTranslation("ERmain.hireme")</p>
+        </div>
+
+        <div class="max-w-lg ml-0 p-6 rounded-lg shadow-md">
+            <form autocomplete="on" role="form" method="post" action="https://mautic.einfachrobbe.de/form/submit?formId=1"
+                  id="mauticform_einfachrobbehireme" data-mautic-form="einfachrobbehireme" enctype="multipart/form-data" class="space-y-4">
+
+                <div class="hidden text-red-500" id="mauticform_einfachrobbehireme_error"></div>
+                <div class="hidden text-green-500" id="mauticform_einfachrobbehireme_message"></div>
+
+                <div>
+                    <label for="mauticform_input_einfachrobbehireme_first_name" class="block text-sm font-medium text-gray-700">@GetTranslation("ERmain.hireme.firstname")</label>
+                    <input type="text" name="mauticform[first_name]" id="mauticform_input_einfachrobbehireme_first_name"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <span class="hidden text-red-500" style="display:none;">@GetTranslation("ERmain.hireme.required")</span>
+                </div>
+
+                <div>
+                    <label for="mauticform_input_einfachrobbehireme_last_name" class="block text-sm font-medium text-gray-700">@GetTranslation("ERmain.hireme.lastname")</label>
+                    <input type="text" name="mauticform[last_name]" id="mauticform_input_einfachrobbehireme_last_name"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <span class="hidden text-red-500" style="display:none;">@GetTranslation("ERmain.hireme.required")</span>
+                </div>
+
+                <div>
+                    <label for="mauticform_input_einfachrobbehireme_email" class="block text-sm font-medium text-gray-700">@GetTranslation("ERmain.hireme.email")</label>
+                    <input type="email" name="mauticform[email]" id="mauticform_input_einfachrobbehireme_email"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <span class="hidden text-red-500" style="display:none;">@GetTranslation("ERmain.hireme.required")</span>
+                </div>
+                
+                <div>
+                    <label for="mauticform_input_einfachrobbehireme_locale1" class="block text-sm font-medium text-gray-700">@GetTranslation("ERmain.hireme.locale")</label>
+                    <select name="mauticform[locale1]" id="mauticform_input_einfachrobbehireme_locale1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        <option value="en">@GetTranslation("ERmain.hireme.locale.en")</option>
+                        <option value="de">@GetTranslation("ERmain.hireme.locale.de")</option>
+                    </select>
+                    <span class="hidden text-red-500" style="display:none;">@GetTranslation("ERmain.hireme.required")</span>
+                </div>
+
+                <div>
+                    <label for="mauticform_input_einfachrobbehireme_job_description" class="block text-sm font-medium text-gray-700">@GetTranslation("ERmain.hireme.jobdesc")</label>
+                    <textarea name="mauticform[job_description]" id="mauticform_input_einfachrobbehireme_job_description"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                    <span class="hidden text-red-500" style="display:none;">@GetTranslation("ERmain.hireme.required")</span>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        @GetTranslation("ERmain.hireme.submit")
+                    </button>
+                </div>
+
+                <input type="hidden" name="mauticform[formId]" id="mauticform_einfachrobbehireme_id" value="1">
+                <input type="hidden" name="mauticform[return]" id="mauticform_einfachrobbehireme_return" value="">
+                <input type="hidden" name="mauticform[formName]" id="mauticform_einfachrobbehireme_name" value="einfachrobbehireme">
+
+            </form>
+        </div>
+
     </section>
 
     <section id="tools">

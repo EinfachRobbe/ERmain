@@ -16,6 +16,8 @@ public class StoryAPI
         _httpClient = httpClient;
         _memoryCache = memoryCache;
         _languageService = languageService;
+        
+        _httpClient.BaseAddress = new Uri("https://cms.einfachrobbe.de/");
     }
     
     public async Task<StoryRoot> GetStoryRoot()
